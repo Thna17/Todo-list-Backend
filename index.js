@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 
-dotenv.config({ path: './config.env' });
+dotenv.config({ path: './.env' });
 const { Pool } = require('pg');
 
 const app = express();
@@ -14,11 +14,11 @@ app.use(express.json());
 
 // PostgreSQL Pool Setup
 const pool = new Pool({
-    host: process.env.PG_HOST || 'localhost',
-    port: process.env.PG_PORT || 5432,
-    database: process.env.PG_DATABASE || 'todos',
-    user: process.env.PG_USER || 'postgres',
-    password: process.env.PG_PASSWORD || 'Mybirthday17072004'
+    host: 'localhost',
+    port: 5432,
+    database: 'todos',
+    user: 'postgres',
+    password: 'Mybirthday17072004'
 });
 
 (async () => {
