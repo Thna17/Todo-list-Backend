@@ -3,7 +3,7 @@ const cors = require('cors');
 const { Pool } = require('pg');
 
 const app = express();
-const port = 5001;
+const port = process.env.PORT || 5001;  // Use the PORT provided by Render
 
 // Middleware
 app.use(cors());
@@ -11,14 +11,14 @@ app.use(express.json());
 
 // PostgreSQL Pool Setup
 const pool = new Pool({
-    host: 'localhost',
-    port: 5432,
-    database: 'todos',
-    user: 'postgres',
-    password: 'Mybirthday17072004'
+    host: process.env.PG_HOST || 'localhost',  // Use environment variables
+    port: process.env.PG_PORT || 5432,        // Use environment variables
+    database: process.env.PG_DATABASE || 'todos',
+    user: process.env.PG_USER || 'postgres',
+    password: process.env.PG_PASSWORD || 'Mybirthday17072004'
 });
 
-// Route to fetch all users
+// Route to fetch all todos
 app.get('/api/todos', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM todos');
@@ -26,6 +26,7 @@ app.get('/api/todos', async (req, res) => {
         res.json(result.rows);
     } catch (err) {
         console.error(err.message);
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
@@ -51,24 +52,30 @@ app.post('/api/todos', async (req, res) => {
     }
 });
 
+// Route to fetch a single todo by ID
 app.get('/api/todos/:id', async (req, res) => {
-    const { id } = req.params;
-    console.log(id);
-    const result = await pool.query(
-        'SELECT * FROM todos WHERE id = $1',
-        [id]
-    );
-    console.log(result);
-    res.status(200).json({
-        status: 'success',
-        data: {
-            result: result.rows[0]
+    try {
+        const { id } = req.params;
+        const result = await pool.query(
+            'SELECT * FROM todos WHERE id = $1',
+            [id]
+        );
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Todo not found' });
         }
-    })
+        res.status(200).json({
+            status: 'success',
+            data: {
+                result: result.rows[0]
+            }
+        });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
 
-})
-
-// Route to handle PUT request to update a todo
+// Route to handle PATCH request to update a todo
 app.patch('/api/todos/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -80,43 +87,34 @@ app.patch('/api/todos/:id', async (req, res) => {
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Todo not found' });
         }
-
         res.status(200).json({
             status: 'success',
             data: {
                 result: result.rows[0]
             }
-        })
-    }
-    catch (err) {
+        });
+    } catch (err) {
         console.error(err.message);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
 // Route to handle DELETE request to delete a todo
-app.delete('/api/todos/:id', (req, res) => {
+app.delete('/api/todos/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        pool.query(
-            'DELETE FROM todos WHERE id = $1',
-            [id]
-        )
+        await pool.query('DELETE FROM todos WHERE id = $1', [id]);
         res.status(204).json({
             status: 'success',
-            data: {
-                result: null
-            }
-        })
+            data: null
+        });
     } catch (err) {
         console.error(err.message);
         res.status(500).json({ error: 'Internal Server Error' });
     }
-})
+});
 
-
-
+// Start server
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
-
