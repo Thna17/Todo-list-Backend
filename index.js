@@ -14,11 +14,14 @@ app.use(express.json());
 
 // PostgreSQL Pool Setup
 const pool = new Pool({
-    host: 'localhost',
-    port: 5432,
-    database: 'todos',
-    user: 'postgres',
-    password: 'Mybirthday17072004'
+    host: process.env.PG_HOST,
+    port: process.env.PG_PORT,
+    database: process.env.PG_DATABASE,
+    user: process.env.PG_USER,
+    password: process.env.PG_PASSWORD,
+    ssl: {
+        rejectUnauthorized: false,  // Allows self-signed certificates
+    }
 });
 
 (async () => {
@@ -32,7 +35,7 @@ const pool = new Pool({
 })();
 
 // Route to fetch all todos
-app.get('/', async (req, res) => {
+app.get('/api/todos', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM todos');
         console.log(result.rows);
