@@ -19,7 +19,7 @@ const pool = new Pool({
 });
 
 // Route to fetch all todos
-app.get('/api/todos', async (req, res) => {
+app.get('/', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM todos');
         console.log(result.rows);
