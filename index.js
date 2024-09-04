@@ -3,26 +3,17 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 
 dotenv.config({ path: './.env' });
-const { Pool } = require('pg');
 
 const app = express();
 const port = process.env.PORT || 5001;  // Use the PORT provided by Render
+const pool = require('./DB');
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
 // PostgreSQL Pool Setup
-const pool = new Pool({
-    host: process.env.PG_HOST,
-    port: process.env.PG_PORT,
-    database: process.env.PG_DATABASE,
-    user: process.env.PG_USER,
-    password: process.env.PG_PASSWORD,
-    ssl: {
-        rejectUnauthorized: false,  // Allows self-signed certificates
-    }
-});
+
 
 (async () => {
     try {
