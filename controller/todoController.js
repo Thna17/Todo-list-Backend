@@ -1,26 +1,51 @@
 const pool = require('../config/db'); 
 const todo = require('../model/todoModel')
 // Route to fetch all todos
+// In your todos controller
 exports.getAllTodos = async (req, res, next) => {
     try {
-        const result = await todo.getAllTodos();
-        res.json(result);
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-}
+        // Extract userId from the request object, populated by authenticateToken middleware
+        const { userId } = req.user; 
+        console.log(userId)
 
-exports.createTodos = async (req, res, next) => {
+        // Fetch todos specific to the authenticated user
+        const result = await pool.query(
+            'SELECT * FROM todos WHERE user_id = $1',
+            [userId]
+        );
+
+        // Send the todos back as the response
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Error fetching todos:', err.message);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
+
+
+// Create a new todo for the logged-in user
+exports.createTodo = async (req, res) => {
+    const { title, description } = req.body;
+    
     try {
-        const { title, description, status } = req.body;
-        const result = await todo.createTodos(title, description, status)
-        res.status(201).json(result[0]);
+        const userId = req.user.userId; // Extract userId from the decoded token
+
+        // Insert new todo into the database
+        const newTodo = await pool.query(
+            'INSERT INTO todos (title, description, user_id) VALUES ($1, $2, $3) RETURNING *',
+            [title, description, userId]
+        );
+
+        res.status(201).json({
+            message: 'Todo created successfully',
+            todo: newTodo.rows[0],
+        });
     } catch (err) {
         console.error(err.message);
         res.status(500).json({ error: 'Internal Server Error' });
     }
-}
+};
+
 
 
 // // Route to handle POST request to create a new todo

@@ -20,11 +20,10 @@ app.use((req, res, next) => {
     console.log('Hello from the middleware!');
     next();
 })
-
 app.use('/api/todos', todoRoute);
+app.use('/api/todos', authenticateToken);
 app.use('/api/auth', authRoutes);
 
-app.use('/api/todos', authenticateToken); //
 app.use(errorHandler)
 
 module.exports = app;
